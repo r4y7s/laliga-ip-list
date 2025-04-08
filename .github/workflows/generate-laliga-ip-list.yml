@@ -2,7 +2,7 @@ name: Generate IP Whitelist (LaLiga)
 
 on:
   schedule:
-    - cron: '0 1,13 * * *'   # 06:00 and 18:00 UTC
+    - cron: '0 6,18 * * *'   # 06:00 and 18:00 UTC
   workflow_dispatch:         # Allows manual execution as well
 
 permissions:
@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DATA_URL: https://hayahora.futbol/estado/data.json  # ✅ Define it once at job level
+      DATA_URL: https://hayahora.futbol/estado/data.json
+      OUTPUT_FILE: laliga_ip_list.txt
 
     steps:
       - name: Checkout repository
@@ -24,19 +25,34 @@ jobs:
 
       - name: Download JSON and generate whitelist
         run: |
-          curl -s "$DATA_URL" | jq -r '.data[].ip' | sort -u > laliga_ip_list.txt
+          set -e  # Stop on first error
 
-          echo "Contents of laliga_ip_list.txt:"
-          cat laliga_ip_list.txt
+          echo "Downloading data from $DATA_URL..."
+          RESPONSE=$(curl -s --fail "$DATA_URL") || { echo "❌ Failed to fetch JSON"; exit 1; }
 
-      - name: Commit and push laliga_ip_list.txt
+          if [ -z "$RESPONSE" ]; then
+            echo "❌ Empty response from $DATA_URL"
+            exit 1
+          fi
+
+          echo "$RESPONSE" | jq -r '.data[].ip' | sort -u > "$OUTPUT_FILE"
+
+          if [ ! -s "$OUTPUT_FILE" ]; then
+            echo "❌ Generated IP list is empty. Aborting."
+            exit 1
+          fi
+
+          echo "✅ IP whitelist generated successfully:"
+          cat "$OUTPUT_FILE"
+
+      - name: Commit and push $OUTPUT_FILE
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
           if [[ `git status --porcelain` ]]; then
-            git add laliga_ip_list.txt
-            git commit -m "Auto-update laliga_ip_list.txt"
+            git add "$OUTPUT_FILE"
+            git commit -m "Auto-update $OUTPUT_FILE"
             git push
           else
             echo "No changes to commit."
