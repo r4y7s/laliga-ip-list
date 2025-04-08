@@ -24,19 +24,19 @@ jobs:
 
       - name: Download JSON and generate whitelist
         run: |
-          curl -s "$DATA_URL" | jq -r '.data[].ip' | sort -u > laliga_ip_list.lst
+          curl -s "$DATA_URL" | jq -r '.data[].ip' | sort -u > laliga_ip_list.txt
 
-          echo "Contents of laliga_ip_list.lst:"
-          cat laliga_ip_list.lst
+          echo "Contents of laliga_ip_list.txt:"
+          cat laliga_ip_list.txt
 
-      - name: Commit and push laliga_ip_list.lst
+      - name: Commit and push laliga_ip_list.txt
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
           if [[ `git status --porcelain` ]]; then
-            git add laliga_ip_list.lst
-            git commit -m "Auto-update laliga_ip_list.lst"
+            git add laliga_ip_list.txt
+            git commit -m "Auto-update laliga_ip_list.txt"
             git push
           else
             echo "No changes to commit."
