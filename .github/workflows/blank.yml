@@ -1,0 +1,42 @@
+name: Generate IP Whitelist (LaLiga)
+
+on:
+  schedule:
+    - cron: '0 6,18 * * *'   # 06:00/18:00 UTC
+  workflow_dispatch:       # Allows manual execution as well
+
+jobs:
+  whitelist:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: sudo apt-get install -y jq curl
+
+      - name: Download JSON and generate whitelist
+        env:
+          DATA_URL: https://hayahora.futbol/estado/data.json
+        run: |
+          URL="https://hayahora.futbol/estado/data.json"
+          curl -s "$DATA_URL" | jq -r '.data[].ip' | sort -u > laliga_ip_list.lst
+
+          echo "Contents of laliga_ip_list.lst:"
+          cat laliga_ip_list.lst
+
+      - name: Commit and push laliga_ip_list.lst
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          if [[ `git status --porcelain` ]]; then
+            git add laliga_ip_list.lst
+            git commit -m "Auto-update laliga_ip_list.lst"
+            git push
+          else
+            echo "No changes to commit."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
