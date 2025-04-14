@@ -2,7 +2,7 @@ name: Generate IP Whitelist (LaLiga)
 
 on:
   schedule:
-    - cron: '0 * * * *'      # Every hour
+    - cron: '50 * * * *'     # Every hour
   workflow_dispatch:         # Allows manual execution as well
 
 permissions:
