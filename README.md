@@ -15,7 +15,7 @@ El archivo `laliga_ip_list.txt` incluye IPs legítimas que han sido bloqueadas d
 
 ### 🔄 Actualización automática
 
-El archivo `laliga_ip_list.txt` se actualiza **dos veces al día**, de forma automática.
+El archivo `laliga_ip_list.txt` se actualiza **varias veces al día**, de forma automática.
 
 ### ⚡ ¿Cómo usarlo?
 
@@ -43,7 +43,7 @@ The `laliga_ip_list.txt` file includes legitimate IPs that were wrongly blocked 
 
 ### 🔄 Automatic updates
 
-The file `laliga_ip_list.txt` is updated **twice a day** automatically.
+The file `laliga_ip_list.txt` is updated **several times a day** automatically.
 
 ### ⚡ How to use
 
