@@ -2,11 +2,11 @@ name: Generate IP Whitelist (LaLiga)
 
 on:
   schedule:
-    - cron: '50 * * * *'     # Every hour
-  workflow_dispatch:         # Allows manual execution as well
+    - cron: '*/5 * * * *'    # Every 5 minutes
+  workflow_dispatch:         # Allows manual execution
 
 permissions:
-  contents: write            # 🔐 Required for pushing changes
+  contents: write
 
 jobs:
   whitelist:
@@ -15,6 +15,8 @@ jobs:
     env:
       DATA_URL: https://hayahora.futbol/estado/data.json
       OUTPUT_FILE: laliga_ip_list.txt
+      JSON_FILE: data.json
+      OUTPUT_JSON_FILE: laliga_status.json
 
     steps:
       - name: Checkout repository
@@ -23,36 +25,50 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get install -y jq curl
 
-      - name: Download JSON and generate whitelist
+      - name: Download JSON once
         run: |
-          set -e  # Stop on first error
+          echo "📥 Downloading data from $DATA_URL..."
+          curl -s --fail "$DATA_URL" -o "$JSON_FILE" || {
+            echo "❌ Failed to fetch JSON"
+            exit 1
+          }
 
-          echo "Downloading data from $DATA_URL..."
-          RESPONSE=$(curl -s --fail "$DATA_URL") || { echo "❌ Failed to fetch JSON"; exit 1; }
-
-          if [ -z "$RESPONSE" ]; then
-            echo "❌ Empty response from $DATA_URL"
+          if [ ! -s "$JSON_FILE" ]; then
+            echo "❌ JSON file is empty. Aborting."
             exit 1
           fi
 
-          echo "$RESPONSE" | jq -r '.data[].ip' | sort -u > "$OUTPUT_FILE"
+          echo "✅ JSON downloaded successfully"
+
+      - name: Generate IP whitelist
+        run: |
+          echo "📝 Generating IP list from $JSON_FILE..."
+          jq -r '.data[].ip' "$JSON_FILE" | sort -u > "$OUTPUT_FILE"
 
           if [ ! -s "$OUTPUT_FILE" ]; then
             echo "❌ Generated IP list is empty. Aborting."
             exit 1
           fi
 
-          echo "✅ IP whitelist generated successfully:"
+          echo "✅ IP whitelist generated:"
           cat "$OUTPUT_FILE"
 
-      - name: Commit and push $OUTPUT_FILE
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Analyze JSON and write status
+        run: node scripts/analyze.js
+
+      - name: Commit and push changes
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
           if [[ `git status --porcelain` ]]; then
-            git add "$OUTPUT_FILE"
-            git commit -m "Auto-update $OUTPUT_FILE"
+            git add "$OUTPUT_FILE" "$OUTPUT_JSON_FILE"
+            git commit -m "Auto-update $OUTPUT_FILE and $OUTPUT_JSON_FILE"
             git push
           else
             echo "No changes to commit."
