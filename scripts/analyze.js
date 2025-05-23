@@ -1,0 +1,48 @@
+const fs = require('fs');
+
+(async () => {
+  try {
+    const raw = fs.readFileSync(process.env.JSON_FILE || 'data.json', 'utf-8');
+    const a = JSON.parse(raw);
+
+    let s = 0, n = 0;
+    if (a && a.data) {
+      const e = new Map(), t = new Map();
+      a.data.forEach(a => {
+        if (a.stateChanges && a.stateChanges.length > 0) {
+          const last = a.stateChanges[a.stateChanges.length - 1];
+          if (last.state === true) {
+            const count = e.get(a.ip) || 0;
+            e.set(a.ip, count + 1);
+            if (a.description === "Cloudflare") {
+              const cfCount = t.get(a.ip) || 0;
+              t.set(a.ip, cfCount + 1);
+            }
+          }
+        }
+      });
+      s = Array.from(e.values()).filter(e => e > 2).length;
+      n = Array.from(t.values()).filter(e => e > 2).length;
+    }
+
+    const isBlocked = n > 10;
+    const state = isBlocked ? "blocked" : "unblocked";
+
+    const now = new Date().toISOString().replace("T", " ").substring(0, 19);
+
+    const output = {
+      lastUpdate: now,
+      isBlocked,
+      state
+    };
+
+    const outputFile = process.env.OUTPUT_JSON_FILE || 'laliga_status.json';
+    fs.writeFileSync(outputFile, JSON.stringify(output, null, 2));
+
+    console.log(`🧠 Analyzed: ${n} Cloudflare IPs > 2`);
+    console.log(`📝 Status: ${state}`);
+  } catch (err) {
+    console.error("❌ Error in JavaScript analysis:", err);
+    process.exit(1);
+  }
+})();
