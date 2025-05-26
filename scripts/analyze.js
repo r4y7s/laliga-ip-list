@@ -27,15 +27,15 @@ const fs = require('fs');
 
     const isBlocked = n > 10;
     const state = isBlocked ? "blocked" : "unblocked";
-    let lastChange = a.lastUpdate || new Date().toISOString().replace("T", " ").substring(0, 19);
+    let lastChangeAt = a.lastUpdate || new Date().toISOString().replace("T", " ").substring(0, 19);
 
     const outputFile = process.env.OUTPUT_JSON_FILE || 'laliga_status.json';
 
     if (fs.existsSync(outputFile)) {
       try {
         const prev = JSON.parse(fs.readFileSync(outputFile, 'utf-8'));
-        if (prev.state === state && prev.lastChange) {
-          lastChange = prev.lastChange;
+        if (prev.state === state && prev.lastChangeAt) {
+          lastChangeAt = prev.lastChangeAt;
         }
       } catch (err) {
         console.warn("⚠️ Could not read previous status, using current time.");
@@ -43,7 +43,7 @@ const fs = require('fs');
     }
 
     const output = {
-      lastChange: lastChange,
+      lastChangeAt: lastChangeAt,
       isBlocked,
       state
     };
