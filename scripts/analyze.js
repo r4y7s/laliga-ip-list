@@ -34,7 +34,7 @@ const fs = require('fs');
     if (fs.existsSync(outputFile)) {
       try {
         const prev = JSON.parse(fs.readFileSync(outputFile, 'utf-8'));
-        if (prev.state === state && prev.lastUpdate) {
+        if (prev.state === state && prev.lastChange) {
           lastChange = prev.lastChange;
         }
       } catch (err) {
