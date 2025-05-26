@@ -53,10 +53,8 @@ jobs:
           echo "✅ IP whitelist generated:"
           cat "$OUTPUT_FILE"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - name: Check Node.js version
+        run: node -v
 
       - name: Analyze JSON and write status
         run: node scripts/analyze.js
