@@ -2,7 +2,8 @@ const fs = require('fs');
 
 (async () => {
   try {
-    const raw = fs.readFileSync(process.env.JSON_FILE || 'data.json', 'utf-8');
+    const jsonFile = process.env.JSON_FILE || 'data.json';
+    const raw = fs.readFileSync(jsonFile, 'utf-8');
     const a = JSON.parse(raw);
 
     let s = 0, n = 0;
@@ -52,6 +53,17 @@ const fs = require('fs');
 
     console.log(`🧠 Analyzed: ${n} Cloudflare IPs > 2`);
     console.log(`📝 Status: ${state}`);
+
+    // Cleanup
+    try {
+      if (fs.existsSync(jsonFile)) {
+        fs.unlinkSync(jsonFile);
+        console.log(`🗑️ Removed temporary file: ${jsonFile}`);
+      }
+    } catch (cleanupErr) {
+      console.warn("⚠️ Failed to remove temporary JSON file:", cleanupErr.message);
+    }
+
   } catch (err) {
     console.error("❌ Error in JavaScript analysis:", err);
     process.exit(1);
