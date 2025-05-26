@@ -27,16 +27,27 @@ const fs = require('fs');
 
     const isBlocked = n > 10;
     const state = isBlocked ? "blocked" : "unblocked";
+    let lastChange = a.lastUpdate || new Date().toISOString().replace("T", " ").substring(0, 19);
 
-    const now = new Date().toISOString().replace("T", " ").substring(0, 19);
+    const outputFile = process.env.OUTPUT_JSON_FILE || 'laliga_status.json';
+
+    if (fs.existsSync(outputFile)) {
+      try {
+        const prev = JSON.parse(fs.readFileSync(outputFile, 'utf-8'));
+        if (prev.state === state && prev.lastUpdate) {
+          lastChange = prev.lastChange;
+        }
+      } catch (err) {
+        console.warn("⚠️ Could not read previous status, using current time.");
+      }
+    }
 
     const output = {
-      lastUpdate: now,
+      lastChange: lastChange,
       isBlocked,
       state
     };
 
-    const outputFile = process.env.OUTPUT_JSON_FILE || 'laliga_status.json';
     fs.writeFileSync(outputFile, JSON.stringify(output, null, 2));
 
     console.log(`🧠 Analyzed: ${n} Cloudflare IPs > 2`);
