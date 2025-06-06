@@ -29,6 +29,7 @@ const fs = require('fs');
     const isBlocked = n > 10;
     const state = isBlocked ? "blocked" : "unblocked";
     let lastChangeAt = a.lastUpdate || new Date().toISOString().replace("T", " ").substring(0, 19);
+    let lastChangeEpoch = Math.floor(new Date(lastChangeAt).getTime() / 1000);
 
     const outputFile = process.env.OUTPUT_JSON_FILE || 'laliga_status.json';
 
@@ -45,6 +46,7 @@ const fs = require('fs');
 
     const output = {
       lastChangeAt: lastChangeAt,
+      lastChangeEpoch: lastChangeEpoch,
       isBlocked,
       state
     };
