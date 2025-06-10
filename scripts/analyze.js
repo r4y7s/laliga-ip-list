@@ -42,9 +42,11 @@ const fs = require('fs');
         console.warn("⚠️ Could not read previous status, using current time.");
       }
     }
+    let lastChangeEpoch = Math.floor(new Date(lastChangeAt).getTime() / 1000);
 
     const output = {
       lastChangeAt: lastChangeAt,
+      lastChangeEpoch: lastChangeEpoch,
       isBlocked,
       state
     };
