@@ -26,7 +26,7 @@ const fs = require('fs');
       n = Array.from(t.values()).filter(e => e > 2).length;
     }
 
-    const isBlocked = n > 10;
+    const isBlocked = n > 2;
     const state = isBlocked ? "blocked" : "unblocked";
     let lastChangeAt = a.lastUpdate || new Date().toISOString().replace("T", " ").substring(0, 19);
 
