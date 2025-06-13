@@ -29,7 +29,7 @@ const fs = require('fs');
       n = Array.from(t.values()).filter(e => e > 2).length;
     }
 
-    // Determinar si está bloqueado: si hay más de X IPs que están bloqueadas en más de 2 ISPs de Cloudflare
+    // Determinar si está bloqueado: si hay más de X IPs (de Cloudflare) que están bloqueadas en más de 2 ISPs
     const isBlocked = n > cloudflareIpThreshold;
     const state = isBlocked ? "blocked" : "unblocked";
     let lastChangeAt = a.lastUpdate || new Date().toISOString().replace("T", " ").substring(0, 19);
