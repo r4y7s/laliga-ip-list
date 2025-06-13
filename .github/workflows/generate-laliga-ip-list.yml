@@ -17,6 +17,7 @@ jobs:
       OUTPUT_FILE: laliga_ip_list.txt
       JSON_FILE: data.json
       OUTPUT_JSON_FILE: laliga_status.json
+      CLOUDFLARE_IP_THRESHOLD: 5
 
     steps:
       - name: Checkout repository
