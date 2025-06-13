@@ -3,6 +3,7 @@ const fs = require('fs');
 (async () => {
   try {
     const jsonFile = process.env.JSON_FILE || 'data.json';
+    const cloudflareIpThreshold = process.env.CLOUDFLARE_IP_THRESHOLD || 6;
     const raw = fs.readFileSync(jsonFile, 'utf-8');
     const a = JSON.parse(raw);
 
@@ -22,11 +23,14 @@ const fs = require('fs');
           }
         }
       });
+      // Contar IPs con más de 2 bloqueos generales
       s = Array.from(e.values()).filter(e => e > 2).length;
+      // Contar IPs con más de 2 bloqueos en Cloudflare
       n = Array.from(t.values()).filter(e => e > 2).length;
     }
 
-    const isBlocked = n > 2;
+    // Determinar si está bloqueado: si hay más de X IPs que están bloqueadas en más de 2 ISPs de Cloudflare
+    const isBlocked = n > cloudflareIpThreshold;
     const state = isBlocked ? "blocked" : "unblocked";
     let lastChangeAt = a.lastUpdate || new Date().toISOString().replace("T", " ").substring(0, 19);
 
@@ -53,7 +57,7 @@ const fs = require('fs');
 
     fs.writeFileSync(outputFile, JSON.stringify(output, null, 2));
 
-    console.log(`🧠 Analyzed: ${n} Cloudflare IPs > 2`);
+    console.log(`🧠 Analyzed: ${n} Cloudflare IPs > ${cloudflareIpThreshold}`);
     console.log(`📝 Status: ${state}`);
 
     // Cleanup
