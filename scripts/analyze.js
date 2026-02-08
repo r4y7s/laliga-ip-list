@@ -9,15 +9,15 @@ const fs = require('fs');
 
     let s = 0, n = 0;
     if (a && a.data) {
-      console.log(`paso 1`);
+      //console.log(`paso 1`);
       const e = new Map(), t = new Map();
       a.data.forEach(a => {
         if (a.stateChanges && a.stateChanges.length > 0) {
           const last = a.stateChanges[a.stateChanges.length - 1];
-          console.log(`Paso 2: ${last.state}`);
+          //console.log(`Paso 2: ${last.state}`);
           if (last.state === true) {
             const count = e.get(a.ip) || 0;
-            console.log(`paso 3 ${count} `);
+            console.log(`paso 3 ${count} - ${a.ip}`);
             e.set(a.ip, count + 1);
             if (a.description === "Cloudflare") {
               const cfCount = t.get(a.ip) || 0;
