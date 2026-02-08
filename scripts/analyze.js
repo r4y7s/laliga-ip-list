@@ -57,7 +57,8 @@ const fs = require('fs');
 
     fs.writeFileSync(outputFile, JSON.stringify(output, null, 2));
 
-    console.log(`🧠 Analyzed: ${n} Cloudflare IPs > ${cloudflareIpThreshold}`);
+    console.log(`🧠 Analyzed general: ${s} IPs`); 
+    console.log(`🧠 Analyzed Cloudflare: ${n} IPs > ${cloudflareIpThreshold}`);
     console.log(`📝 Status: ${state}`);
 
     // Cleanup
