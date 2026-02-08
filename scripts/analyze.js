@@ -14,8 +14,9 @@ const fs = require('fs');
       a.data.forEach(a => {
         if (a.stateChanges && a.stateChanges.length > 0) {
           const last = a.stateChanges[a.stateChanges.length - 1];
-          console.log(`Paso 2: ${last}`);
+          console.log(`Paso 2: ${last.state}`);
           if (last.state === true) {
+            console.log(`paso 3`);
             const count = e.get(a.ip) || 0;
             e.set(a.ip, count + 1);
             if (a.description === "Cloudflare") {
