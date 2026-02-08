@@ -16,8 +16,8 @@ const fs = require('fs');
           const last = a.stateChanges[a.stateChanges.length - 1];
           console.log(`Paso 2: ${last.state}`);
           if (last.state === true) {
-            console.log(`paso 3`);
             const count = e.get(a.ip) || 0;
+            console.log(`paso 3 ${count} `);
             e.set(a.ip, count + 1);
             if (a.description === "Cloudflare") {
               const cfCount = t.get(a.ip) || 0;
