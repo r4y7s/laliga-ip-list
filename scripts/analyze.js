@@ -9,10 +9,12 @@ const fs = require('fs');
 
     let s = 0, n = 0;
     if (a && a.data) {
+      console.log(`paso 1`);
       const e = new Map(), t = new Map();
       a.data.forEach(a => {
         if (a.stateChanges && a.stateChanges.length > 0) {
           const last = a.stateChanges[a.stateChanges.length - 1];
+          console.log(`Paso 2: ${last}`);
           if (last.state === true) {
             const count = e.get(a.ip) || 0;
             e.set(a.ip, count + 1);
