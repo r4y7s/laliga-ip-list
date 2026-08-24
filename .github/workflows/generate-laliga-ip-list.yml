@@ -23,35 +23,38 @@ jobs:
       JSON_FILE: data.json
       OUTPUT_JSON_FILE: laliga_status.json
       CLOUDFLARE_IP_THRESHOLD: 6
+      ISP_THRESHOLD: 2
+      CONFIRMATIONS: 2
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Fetch, generate and analyze
         run: |
           set -euo pipefail
+          {
+            echo "📥 Descargando $DATA_URL"
+            curl -sS --fail --compressed --max-time 30 \
+                 --retry 3 --retry-delay 2 --retry-connrefused \
+                 "$DATA_URL" -o "$JSON_FILE"
+            [ -s "$JSON_FILE" ] || { echo "::error::JSON vacío"; exit 1; }
 
-          echo "📥 Descargando $DATA_URL"
-          curl -sS --fail --compressed --max-time 30 \
-               --retry 3 --retry-delay 2 --retry-connrefused \
-               "$DATA_URL" -o "$JSON_FILE"
-          [ -s "$JSON_FILE" ] || { echo "::error::JSON vacío"; exit 1; }
+            echo "📝 Generando $OUTPUT_FILE"
+            jq -r '.data[].ip' "$JSON_FILE" | sort -u > "$OUTPUT_FILE"
+            [ -s "$OUTPUT_FILE" ] || { echo "::error::lista de IPs vacía"; exit 1; }
 
-          echo "📝 Generando $OUTPUT_FILE"
-          jq -r '.data[].ip' "$JSON_FILE" | sort -u > "$OUTPUT_FILE"
-          [ -s "$OUTPUT_FILE" ] || { echo "::error::lista de IPs vacía"; exit 1; }
+            node scripts/analyze.js
 
-          node scripts/analyze.js
-
-          echo "✅ $(wc -l < "$OUTPUT_FILE") IPs"
+            echo "✅ $(wc -l < "$OUTPUT_FILE") IPs"
+          } 2>&1 | tee /tmp/run.log
 
       - name: Commit and push
         run: |
           set -euo pipefail
 
           if git diff --quiet -- "$OUTPUT_FILE" "$OUTPUT_JSON_FILE"; then
-            echo "Sin cambios, nada que commitear."
+            echo "Sin cambios, nada que commitear." | tee -a /tmp/run.log
             exit 0
           fi
 
@@ -62,10 +65,29 @@ jobs:
           git commit -m "Auto-update $OUTPUT_FILE and $OUTPUT_JSON_FILE"
 
           for i in 1 2 3; do
-            if git push; then exit 0; fi
+            if git push; then
+              echo "⬆️ Cambios publicados." | tee -a /tmp/run.log
+              exit 0
+            fi
             echo "⚠️ Push rechazado, rebasando (intento $i)"
             git pull --rebase -X theirs origin main
           done
 
           echo "::error::No se pudo hacer push tras 3 intentos"
           exit 1
+
+      - name: Publish summary
+        if: always()
+        run: |
+          {
+            if [ -r "$OUTPUT_JSON_FILE" ]; then
+              echo "**Estado:** \`$(jq -r .state "$OUTPUT_JSON_FILE")\` · \
+          **CF bloqueadas:** $(jq -r .cloudflareBlockedIps "$OUTPUT_JSON_FILE") · \
+          **En >$ISP_THRESHOLD ISPs:** $(jq -r .widelyBlockedIps "$OUTPUT_JSON_FILE")"
+              echo
+            fi
+            echo '### Resultado'
+            echo '```'
+            cat /tmp/run.log 2>/dev/null || echo '(sin salida)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
