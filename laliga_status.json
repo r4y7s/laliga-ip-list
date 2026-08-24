@@ -2,5 +2,11 @@
   "lastChangeAt": "2026-08-23 22:25:18Z",
   "lastChangeEpoch": 1787523918,
   "isBlocked": false,
-  "state": "unblocked"
+  "state": "unblocked",
+  "observedState": "unblocked",
+  "cloudflareBlockedIps": 0,
+  "widelyBlockedIps": 0,
+  "feedLastUpdate": "2026-08-24T16:44:48.000Z",
+  "pendingState": null,
+  "pendingCount": 0
 }
