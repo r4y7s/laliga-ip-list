@@ -1,16 +1,21 @@
 name: Generate IP Whitelist (LaLiga)
 
 on:
+  workflow_dispatch:        # disparo principal (cron externo + ETag)
   schedule:
-    - cron: '*/10 * * * *'   # Every 10 minutes
-  workflow_dispatch:         # Allows manual execution
+    - cron: '23 * * * *'    # red de seguridad horaria, minuto impar a propósito
 
 permissions:
   contents: write
 
+concurrency:
+  group: laliga-ip-list
+  cancel-in-progress: false
+
 jobs:
   whitelist:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     env:
       DATA_URL: https://hayahora.futbol/estado/data.json
@@ -21,54 +26,46 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: sudo apt-get install -y jq curl
-
-      - name: Download JSON once
+      - name: Fetch, generate and analyze
         run: |
-          echo "📥 Downloading data from $DATA_URL..."
-          curl -s --fail "$DATA_URL" -o "$JSON_FILE" || {
-            echo "❌ Failed to fetch JSON"
-            exit 1
-          }
+          set -euo pipefail
 
-          if [ ! -s "$JSON_FILE" ]; then
-            echo "❌ JSON file is empty. Aborting."
-            exit 1
-          fi
+          echo "📥 Descargando $DATA_URL"
+          curl -sS --fail --compressed --max-time 30 \
+               --retry 3 --retry-delay 2 --retry-connrefused \
+               "$DATA_URL" -o "$JSON_FILE"
+          [ -s "$JSON_FILE" ] || { echo "::error::JSON vacío"; exit 1; }
 
-          echo "✅ JSON downloaded successfully"
-
-      - name: Generate IP whitelist
-        run: |
-          echo "📝 Generating IP list from $JSON_FILE..."
+          echo "📝 Generando $OUTPUT_FILE"
           jq -r '.data[].ip' "$JSON_FILE" | sort -u > "$OUTPUT_FILE"
+          [ -s "$OUTPUT_FILE" ] || { echo "::error::lista de IPs vacía"; exit 1; }
 
-          if [ ! -s "$OUTPUT_FILE" ]; then
-            echo "❌ Generated IP list is empty. Aborting."
-            exit 1
-          fi
+          node scripts/analyze.js
 
-          echo "✅ IP whitelist generated:"
-          cat "$OUTPUT_FILE"
+          echo "✅ $(wc -l < "$OUTPUT_FILE") IPs"
 
-      - name: Check Node.js version
-        run: node -v
-
-      - name: Analyze JSON and write status
-        run: node scripts/analyze.js
-
-      - name: Commit and push changes
+      - name: Commit and push
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+          set -euo pipefail
 
-          if [[ `git status --porcelain` ]]; then
-            git add "$OUTPUT_FILE" "$OUTPUT_JSON_FILE"
-            git commit -m "Auto-update $OUTPUT_FILE and $OUTPUT_JSON_FILE"
-            git push
-          else
-            echo "No changes to commit."
+          if git diff --quiet -- "$OUTPUT_FILE" "$OUTPUT_JSON_FILE"; then
+            echo "Sin cambios, nada que commitear."
+            exit 0
           fi
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add "$OUTPUT_FILE" "$OUTPUT_JSON_FILE"
+          git commit -m "Auto-update $OUTPUT_FILE and $OUTPUT_JSON_FILE"
+
+          for i in 1 2 3; do
+            if git push; then exit 0; fi
+            echo "⚠️ Push rechazado, rebasando (intento $i)"
+            git pull --rebase -X theirs origin main
+          done
+
+          echo "::error::No se pudo hacer push tras 3 intentos"
+          exit 1
