@@ -1,12 +1,12 @@
 {
-  "lastChangeAt": "2026-08-29T15:26:48.000Z",
-  "lastChangeEpoch": 1788017208,
-  "isBlocked": true,
-  "state": "blocked",
+  "lastChangeAt": "2026-08-29T21:21:48.000Z",
+  "lastChangeEpoch": 1788038508,
+  "isBlocked": false,
+  "state": "unblocked",
   "observedState": "unblocked",
-  "cloudflareBlockedIps": 3,
-  "widelyBlockedIps": 3,
-  "feedLastUpdate": "2026-08-29T21:16:38.000Z",
-  "pendingState": "unblocked",
-  "pendingCount": 1
+  "cloudflareBlockedIps": 0,
+  "widelyBlockedIps": 0,
+  "feedLastUpdate": "2026-08-29T21:21:48.000Z",
+  "pendingState": null,
+  "pendingCount": 0
 }
