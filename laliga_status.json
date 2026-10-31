@@ -3,10 +3,10 @@
   "lastChangeEpoch": 1793452305,
   "isBlocked": true,
   "state": "blocked",
-  "observedState": "blocked",
-  "cloudflareBlockedIps": 32,
-  "widelyBlockedIps": 33,
-  "feedLastUpdate": "2026-10-31T15:52:05.000Z",
-  "pendingState": null,
-  "pendingCount": 0
+  "observedState": "unblocked",
+  "cloudflareBlockedIps": 0,
+  "widelyBlockedIps": 0,
+  "feedLastUpdate": "2026-10-31T15:56:25.000Z",
+  "pendingState": "unblocked",
+  "pendingCount": 1
 }
