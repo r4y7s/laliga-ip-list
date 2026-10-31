@@ -4,9 +4,9 @@
   "isBlocked": true,
   "state": "blocked",
   "observedState": "blocked",
-  "cloudflareBlockedIps": 45,
-  "widelyBlockedIps": 45,
-  "feedLastUpdate": "2026-10-31T20:21:45.000Z",
+  "cloudflareBlockedIps": 54,
+  "widelyBlockedIps": 54,
+  "feedLastUpdate": "2026-10-31T20:26:45.000Z",
   "pendingState": null,
   "pendingCount": 0
 }
